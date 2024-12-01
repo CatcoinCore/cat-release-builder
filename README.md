@@ -1,72 +1,123 @@
 # cat-release-builder
 
-cat-release-builder is an updated gitian builder script for building Catcoin Core 0.21.x. 
-It includes additional features and bugfixes not present in the original gitian-builder script.
+A specialized Gitian builder script for creating reproducible Catcoin Core builds. This tool ensures binary consistency and security across different platforms through a controlled build environment.
 
-We recommend building with docker mode, please see [the Docker installation website](https://docs.docker.com/engine/install/)
-for appropriate Docker Desktop for your computer. When building, please make sure to have Docker Desktop open on your system.
+## Host Requirements
 
-### Setup
+You can run this builder on Windows, Linux, or MacOS hosts. Each platform has its own requirements:
 
-Replace USERNAME & version number. The version number should be the same as the tag, but without the `v` prefix.
+### All Platforms
+- Docker Desktop
+- Git
+- Python 3
+- GPG (GnuPG) for signing
+- ~50GB free disk space
+- 8GB+ RAM recommended
 
-```bash
-$ git clone -b catcoin-changes https://github.com/CatcoinCore/cat-release-builder.git
-$ cd cat-release-builder
-$ ./build-release.py --docker --setup USERNAME 2.0.0-beta15 --disable-apt-cacher
-```
+### Platform-Specific Notes
+- **Windows**: WSL2 required for Docker Desktop
+- **Linux**: Additional build tools may be required
+- **MacOS**: Command Line Tools package required
 
-### Usage
+The specific installation steps for each component will vary by platform. Please refer to the official documentation for each tool for your specific operating system.
 
-There are three different build modes, `--build`, `--sign` or `--buildsign`.
-
-Building for specific target OS can be specified by parameter `-o` where `m` is macOS, `w` is Windows and `l` is Linux.
-
-`-j` to specific number of build threads (there is a known issue where too many threads may cause build failures).
-
-`-m` to specify amount of memory to allocate in MB.
-
-**Example**
-```
-./build-release.py --docker --build kr105 2.0.0-beta15 -j 30 -m 10000 --no-commit -o w
-```
-
-**Additional help?**
-```
-./build-release.py --help
-```
-
-
-## Adding a New GPG Key for Gitian Building
-
-## Generate a New Key
-
-1. Generate a new GPG key:
-```bash
-gpg --full-generate-key
-```
-
-2. When prompted:
-
-- Choose option 10 ((10) ECC (sign only))
-- Accept the default elliptic curve
-- Important: You must set a password, or some scripts will break
-- Enter your USERNAME and email address
-
-3. Export your public key:
+## Quick Start
 
 ```bash
-gpg --export --output USERNAME-key.gpg USERNAME
+# Clone the repository
+git clone -b catcoin-changes https://github.com/CatcoinCore/cat-release-builder.git
+cd cat-release-builder
+
+# Initial setup with Docker
+./build-release.py --docker --setup USERNAME VERSION --disable-apt-cacher
 ```
 
-4. Add your key to the repository:
-- Copy the USERNAME-key.gpg file to the gitian-keys folder
-- Commit and push your changes
+## Core Parameters
 
-5. Optional but recommended - Backup your private key:
+| Parameter | Description | Example |
+|-----------|-------------|----------|
+| `--docker` | Use Docker for builds (recommended) | `--docker` |
+| `--build` | Build unsigned binaries | `--build` |
+| `--sign` | Create signed binaries | `--sign` |
+| `--buildsign` | Build and sign in one operation | `--buildsign` |
+| `-o` | Target OS(es): l(Linux), w(Windows), m(MacOS) | `-o wm` |
+| `-j` | Build threads | `-j 4` |
+| `-m` | Memory allocation (MB) | `-m 8000` |
+| `--no-commit` | Skip committing build results | `--no-commit` |
+| `--disable-apt-cacher` | Disable apt-cacher (recommended) | `--disable-apt-cacher` |
+
+## Common Build Commands
+
+### Build for Single Platform
 ```bash
-gpg --export-secret-keys --armor USERNAME > USERNAME-key_private.asc
+./build-release.py --docker --build USERNAME 2.0.0-beta15 -o w -j 4 -m 8000 --no-commit
 ```
-Store this backup with your password securely and offline.
 
-Note: Replace USERNAME with your actual nickname throughout these commands.
+### Build and Sign All Platforms
+```bash
+./build-release.py --docker --buildsign USERNAME 2.0.0-beta15 -j 4 -m 8000
+```
+
+## Build Process Overview
+
+This is what the script automatically handles when you run it:
+
+1. **Setup Phase** (automated)
+   - Installs required dependencies
+   - Clones necessary repositories
+   - Downloads MacOS SDK (if building for MacOS)
+   - Prepares build environment
+
+2. **Build Phase** (automated)
+   - Compiles binaries for selected platforms
+   - Creates unsigned packages
+   - Generates build signatures
+   - Moves artifacts to `catcoin-binaries/VERSION/`
+
+3. **Sign Phase** (automated, if enabled)
+   - Signs Windows executables
+   - Signs MacOS packages
+   - Creates detached signatures
+   - Updates signature repository
+
+You only need to run the appropriate command (see "Common Build Commands" above) and the script handles all these steps automatically.
+
+## GPG Key Requirements
+
+You'll need a GPG key for signing builds. The setup process varies by platform:
+- Windows: Use Gpg4win or Windows Subsystem for Linux
+- Linux: Use your distribution's GPG package
+- MacOS: Use GPG Suite or Homebrew's GPG
+
+Key requirements:
+- ECC (sign only) key
+- Password protection enabled
+- The key identifier should match the USERNAME you use in the build commands
+
+## Output Directory Structure
+
+After building, files are organized as follows:
+```
+catcoin-binaries/VERSION/
+├── debug/           # Debug symbols
+├── unsigned/        # Unsigned binaries
+└── release/        # Final releases
+    ├── linux/      # Linux binaries
+    ├── osx/        # MacOS packages
+    ├── win/        # Windows installers
+    └── src/        # Source code archives
+```
+
+## Troubleshooting
+
+Common issues to check:
+- Docker is running and properly configured for your OS
+- Sufficient disk space and memory
+- GPG key is properly set up and accessible
+- Correct permissions on build directories
+- All prerequisites are installed and in PATH
+
+## Support
+
+- Report issues on GitHub
+- Join Catcoin community channels for help
