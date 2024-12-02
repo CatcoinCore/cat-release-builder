@@ -130,7 +130,7 @@ def build():
 
     if args.linux:
         print('\nCompiling ' + args.version + ' Linux')
-        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--fetch-tags', '--commit', 'catcoin='+args.commit, '--url', 'catcoin='+args.url, '../gitian-descriptors/gitian-linux.yml'])
+        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--fetch-tags', '--commit', 'litecoin='+args.commit, '--url', 'litecoin='+args.url, '../gitian-descriptors/gitian-linux.yml'])
         preset_gpg_passphrase()
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-linux', '--destination', '../gitian.sigs.cat/', '../gitian-descriptors/gitian-linux.yml'])
         subprocess.check_call('mv build/out/catcoin-*.tar.gz build/out/src/catcoin-*.tar.gz ../catcoin-binaries/'+args.version, shell=True)
@@ -145,7 +145,7 @@ def build():
 
     if args.macos:
         print('\nCompiling ' + args.version + ' MacOS')
-        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--fetch-tags', '--commit', 'catcoin='+args.commit, '--url', 'catcoin='+args.url, '../gitian-descriptors/gitian-osx.yml'])
+        subprocess.check_call(['bin/gbuild', '-j', args.jobs, '-m', args.memory, '--fetch-tags', '--commit', 'litecoin='+args.commit, '--url', 'litecoin='+args.url, '../gitian-descriptors/gitian-osx.yml'])
         preset_gpg_passphrase()
         subprocess.check_call(['bin/gsign', '-p', args.sign_prog, '--signer', args.signer, '--release', args.version+'-osx-unsigned', '--destination', '../gitian.sigs.cat/', '../gitian-descriptors/gitian-osx.yml'])
         subprocess.check_call('mv build/out/catcoin-*-osx-unsigned.tar.gz inputs/', shell=True)
